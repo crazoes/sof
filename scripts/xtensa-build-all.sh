@@ -30,60 +30,36 @@ then
 	echo "       Supported platforms ${SUPPORTED_PLATFORMS[@]}"
 else
 	# parse the args
-	for args in $@
-	do
-		if [[ "$args" == "-r" ]]
-			then
-			BUILD_ROM=yes
+        while getopts "rudjckva" OPTION; do
+                case "$OPTION" in
+                        r) BUILD_ROM=yes ;;
+                        u) BUILD_FORCE_UP=yes ;;
+                        d) BUILD_DEBUG=yes ;;
+                        j) BUILD_JOBS_NEXT=1; BUILD_JOBS="" ;;
+                        c) MAKE_MENUCONFIG=yes ;;
+                        k) USE_PRIVATE_KEY=yes ;;
+                        v) BUILD_VERBOSE=ON ;;
+                        a) PLATFORMS=${SUPPORTED_PLATFORMS[@]} ;;
+                        *)
+                                # check for plaform
+                                for i in ${SUPPORTED_PLATFORMS[@]}
+                                do
+                                        if [ $i == $args ]
+                                        then
+                                                PLATFORMS+=$i" "
+                                                BUILD_JOBS_NEXT=0
+                                        fi
+                                done
 
-		elif [[ "$args" == "-u" ]]
-			then
-			BUILD_FORCE_UP=yes
-
-		elif [[ "$args" == "-d" ]]
-			then
-			BUILD_DEBUG=yes
-
-		elif [[ "$args" == "-j" ]]
-			then
-			BUILD_JOBS_NEXT=1
-			BUILD_JOBS=""
-
-		elif [[ "$args" == "-c" ]]
-			then
-			MAKE_MENUCONFIG=yes
-
-		elif [[ "$args" == "-k" ]]
-			then
-			USE_PRIVATE_KEY=yes
-
-		elif [[ "$args" == "-v" ]]
-			then
-			BUILD_VERBOSE=ON
-
-		# Build all platforms
-		elif [[ "$args" == "-a" ]]
-			then
-			PLATFORMS=${SUPPORTED_PLATFORMS[@]}
-		else
-			# check for plaform
-			for i in ${SUPPORTED_PLATFORMS[@]}
-			do
-				if [ $i == $args ]
-				then
-					PLATFORMS+=$i" "
-					BUILD_JOBS_NEXT=0
-				fi
-			done
-
-			# check for jobs
-			if [ ${BUILD_JOBS_NEXT} == 1 ]
-				then
-				BUILD_JOBS=$args
-				BUILD_JOBS_NEXT=0
-			fi
-		fi
-	done
+                                # check for jobs
+                                if [ ${BUILD_JOBS_NEXT} == 1 ]
+                                        then
+                                        BUILD_JOBS=$args
+                                        BUILD_JOBS_NEXT=0
+                                fi
+                                ;;
+                esac
+        done
 fi
 
 # check target platform(s) have been passed in
