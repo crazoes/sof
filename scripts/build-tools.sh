@@ -13,19 +13,30 @@ mkdir build_tools
 cd build_tools
 cmake ..
 make -j$(nproc)
-for args in $@
-do
-	#build test topologies
-	if [[ "$args" == "-t" ]]; then
-		make tests -j$(nproc)
-	fi
-	#build fuzzer
-	if [[ "$args" == "-f" ]]; then
-		rm -rf build_fuzzer
-		mkdir build_fuzzer
-		cd build_fuzzer
-		cmake ../../fuzzer
-		make -j$(nproc)
-		cd ../
-	fi
+
+DO_BUILD_TEST=false
+DO_BUILD_FUZZER=false
+while getopts "tf" OPTION; do
+        case "$OPTION" in
+        t) DO_BUILD_TEST=true ;;
+        f) DO_BUILD_FUZZER=true ;;
+        *) ;;
+        esac
 done
+shift "$(($OPTIND - 1))"
+
+#build test topologies
+if $DO_BUILD_TEST; then
+        echo building tests
+        make tests -j$(nproc)
+fi
+#build fuzzer
+if $DO_BUILD_FUZZER; then
+        echo building fuzzer
+        rm -rf build_fuzzer
+        mkdir build_fuzzer
+        cd build_fuzzer
+        cmake ../../fuzzer
+        make -j$(nproc)
+        cd ../
+fi
